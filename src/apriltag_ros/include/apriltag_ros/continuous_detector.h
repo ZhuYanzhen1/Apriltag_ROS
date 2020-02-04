@@ -71,6 +71,7 @@ class ContinuousDetector: public nodelet::Nodelet
   image_transport::Publisher tag_detections_image_publisher_;
   ros::Publisher tag_detections_publisher_;
   ros::Publisher odomtry_publisher_;
+  ros::Publisher path_pubilsher;
 };
 
 } // namespace apriltag_ros

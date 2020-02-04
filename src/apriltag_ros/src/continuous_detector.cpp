@@ -35,6 +35,8 @@
 
 #include <nav_msgs/Odometry.h>
 
+#include <nav_msgs/Path.h>
+
 PLUGINLIB_EXPORT_CLASS(apriltag_ros::ContinuousDetector, nodelet::Nodelet);
 
 namespace apriltag_ros
@@ -62,12 +64,14 @@ void ContinuousDetector::onInit ()
       nh.advertise<AprilTagDetectionArray>("tag_detections", 1);
 
   odomtry_publisher_ = nh.advertise<nav_msgs::Odometry>("tag_Odometry", 100);
-
+  path_pubilsher= nh.advertise<nav_msgs::Path>("tag_Path", 100);
   if (draw_tag_detections_image_)
   {
     tag_detections_image_publisher_ = it_->advertise("tag_detections_image", 1);
   }
 }
+
+nav_msgs::Path camera_path;
 
 void ContinuousDetector::imageCallback (
     const sensor_msgs::ImageConstPtr& image_rect,
@@ -106,6 +110,17 @@ void ContinuousDetector::imageCallback (
       //odometry.header.frame_id = "my_bundle";
       odometry.pose.pose = tag_detection_array.detections[i].pose.pose.pose;
       odomtry_publisher_.publish(odometry);
+
+      geometry_msgs::PoseStamped pose_stamped;
+      pose_stamped.header = odometry.header;
+      //pose_stamped.header.frame_id = "world";
+      pose_stamped.pose.position.x = tag_detection_array.detections[i].pose.pose.pose.position.x;
+      pose_stamped.pose.position.y = tag_detection_array.detections[i].pose.pose.pose.position.y;
+      pose_stamped.pose.position.z = tag_detection_array.detections[i].pose.pose.pose.position.z;
+      camera_path.header = pose_stamped.header;
+      //camera_path.header.frame_id = "world";
+      camera_path.poses.push_back(pose_stamped);
+      path_pubilsher.publish(camera_path);
     }
   }
 
